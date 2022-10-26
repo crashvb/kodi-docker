@@ -34,6 +34,7 @@ RUN docker-apt gnupg && \
 		kodi-eventclients-kodi-send \
 		kodi-vfs-sftp \
 		kodi \
+		openssh-client \
 		pulseaudio \
 		tzdata
 
