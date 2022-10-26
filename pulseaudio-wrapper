@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+exec /usr/bin/pulseaudio \
+	--disallow-exit=1 \
+	--exit-idle-time=-1 \
+	--log-target=stderr
+

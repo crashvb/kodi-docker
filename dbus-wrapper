@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -e -o pipefail
+
+/usr/bin/dbus-uuidgen > /var/lib/dbus/machine-id
+
+exec /usr/bin/dbus-daemon \
+	--nofork \
+	--nopidfile \
+	--nosyslog \
+	--print-address \
+	--system
+

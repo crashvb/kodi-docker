@@ -12,17 +12,8 @@ build: Dockerfile
 
 debug:
 	docker run \
-		--detach=true \
-		--hostname=$(name)-db \
-		--name=$(name)-db \
-		--tty=true \
-		$(dbrunargs) \
-		$(registry)$(namespace)/mysql:$(dbtag) \
-		$(ARGS)
-	docker run \
 		--hostname=$(name) \
 		--interactive=true \
-		--link=$(name)-db:kodi-db \
 		--name=$(name) \
 		--tty=true \
 		$(runargs) \
@@ -33,21 +24,12 @@ logs:
 	@docker logs --follow=true $(ARGS) $(name)
 
 remove:
-	-@docker rm --force=true --volumes=true $(ARGS) $(name) $(name)-db
+	-@docker rm --force=true --volumes=true $(ARGS) $(name)
 
 run:
 	docker run \
 		--detach=true \
-		--hostname=$(name)-db \
-		--name=$(name)-db \
-		--tty=true \
-		$(dbrunargs) \
-		$(registry)$(namespace)/mysql:$(dbtag) \
-		$(ARGS)
-	docker run \
-		--detach=true \
 		--hostname=$(name) \
-		--link=$(name)-db:kodi-db \
 		--name=$(name) \
 		--tty=true \
 		$(runargs) \
@@ -58,13 +40,13 @@ shell:
 	@docker exec --interactive=true --tty=true $(name) /bin/login -f root -p $(ARGS)
 
 start:
-	@docker start $(ARGS) $(name)-db $(name)
+	@docker start $(ARGS) $(name)
 
 status:
 	@docker ps $(ARGS) --all=true --filter=name=$(name)
 
 stop:
-	-@docker stop $(ARGS) $(name) $(name)-db
+	-@docker stop $(ARGS) $(name)
 
 test: test
 	docker create \
