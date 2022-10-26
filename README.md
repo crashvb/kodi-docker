@@ -7,7 +7,11 @@
 
 ## Overview
 
-This docker image contains [kodi](https://kodi.tv/).
+This docker image contains:
+
+* [dbus](https://dbus.freedesktop.org/)
+* [kodi](https://kodi.tv/)
+* [pulseaudio](https://gitlab.freedesktop.org/pulseaudio/pulseaudio)
 
 ## Entrypoint Scripts
 
