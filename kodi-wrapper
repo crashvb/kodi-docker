@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+handle_stop() {
+	echo "Stopping kodi ..."
+	kodi-send --action="Quit"
+
+	while [[ "X$(pgrep --count --full /usr/lib/x86_64-linux-gnu/kodi/kodi.bin)" = "X1" ]] ; do
+		sleep 1
+	done
+
+	exit 0
+}
+
+trap handle_stop EXIT SIGINT SIGTERM
+
+echo "Starting kodi ..."
+/usr/bin/kodi --debug --standalone
+

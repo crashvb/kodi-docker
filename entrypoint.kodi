@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+
+# Configure: kodi
+if [[ ! -e $EP_RUN ]] ; then
+	log "Configuring $(basename $0) for first run ..."
+
+	# Generate ssh keys ...
+	generate_sshkey kodi
+
+	log "Staging ssh keys ..."
+	install --group=kodi --mode=0600 --owner=kodi $EP_SECRETS_ROOT/id_rsa.kodi /home/kodi/.ssh/id_rsa
+	install --group=kodi --mode=0644 --owner=kodi $EP_SECRETS_ROOT/id_rsa.kodi.pub /home/kodi/.ssh/id_rsa.pub
+
+	# Volume initialization
+	if [[ ! -f $KODI_DATA/kodi.conf ]] ; then
+		log "Initializing data volume ..."
+		# TODO: ...
+	else
+		log "Skipping volume initialization ..."
+	fi
+
+	find $KODI_DATA \( \! -user kodi -o \! -group kodi \) -exec chown kodi:kodi {} \;
+fi
+
