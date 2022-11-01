@@ -13,10 +13,68 @@ if [[ ! -e $EP_RUN ]] ; then
 	install --group=kodi --mode=0600 --owner=kodi $EP_SECRETS_ROOT/id_rsa.kodi /home/kodi/.ssh/id_rsa
 	install --group=kodi --mode=0644 --owner=kodi $EP_SECRETS_ROOT/id_rsa.kodi.pub /home/kodi/.ssh/id_rsa.pub
 
+	# Generate keypairs ...
+	if [[ -e $EP_SECRETS_ROOT/kodica.crt && -e $EP_SECRETS_ROOT/kodi.crt && -e $EP_SECRETS_ROOT/kodi.key ]] ; then
+		log "Importing kodica.crt, kodi.crt, and kodi.key from secrets ..."
+	else
+		# Note: Key size must be >= 3072 for "HIGH" security:
+		export KODI_CERT_DAYS=${KODI_CERT_DAYS:-30}
+		export KODI_KEY_SIZE=${KODI_KEY_SIZE:-4096}
+
+		log "Generating kodica.crt, kodi.crt, and kodi.key in secrets ..."
+
+		log "	certificate authority"
+		openssl genrsa \
+			-out /dev/shm/kodica.key \
+			$KODI_KEY_SIZE
+		openssl req \
+			-days $KODI_CERT_DAYS \
+			-key /dev/shm/kodica.key \
+			-new \
+			-nodes \
+			-out $EP_SECRETS_ROOT/kodica.crt \
+			-sha256 \
+			-subj "/CN=kodi ca" \
+			-x509
+
+		log "	server certificate"
+		openssl genrsa \
+			-out $EP_SECRETS_ROOT/kodi.key \
+			$KODI_KEY_SIZE
+		openssl req \
+			-key $EP_SECRETS_ROOT/kodi.key \
+			-new \
+			-nodes \
+			-out /dev/shm/kodi.csr \
+			-sha256 \
+			-subj "/CN=kodi server"
+		openssl x509 \
+			-CA $EP_SECRETS_ROOT/kodica.crt \
+			-CAkey /dev/shm/kodica.key \
+			-CAcreateserial \
+			-days $KODI_CERT_DAYS \
+			-in /dev/shm/kodi.csr \
+			-out $EP_SECRETS_ROOT/kodi.crt \
+			-req \
+			-sha256
+
+		rm /dev/shm/{kodica.key,kodi.csr} $EP_SECRETS_ROOT/kodica.srl
+
+	fi
+	install --group=ssl-cert --mode=0640 --owner=root $EP_SECRETS_ROOT/kodi.key /etc/ssl/private/
+	install --group=root --mode=0644 --owner=root $EP_SECRETS_ROOT/kodi{,ca}.crt /etc/ssl/certs/
+
+	ln --symbolic /etc/ssl/certs/kodica.crt /usr/share/ca-certificates/
+	echo kodica.crt >> /etc/ca-certificates.conf
+	update-ca-certificates
+
 	# Volume initialization
 	if [[ ! -f $KODI_DATA/kodi.conf ]] ; then
 		log "Initializing data volume ..."
-		# TODO: ...
+
+		install --directory --group=kodi --mode=0755 --owner=kodi $KODI_DATA/userdata
+		ln --symbolic /etc/ssl/certs/kodi.crt $KODI_DATA/userdata/server.pem || true
+		ln --symbolic /etc/ssl/private/kodi.key $KODI_DATA/userdata/server.key || true
 	else
 		log "Skipping volume initialization ..."
 	fi

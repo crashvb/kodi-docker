@@ -19,7 +19,15 @@ This docker image contains:
 
 The embedded entrypoint script is located at `/etc/entrypoint.d/kodi` and performs the following actions:
 
-1. Volume permissions are normalized.
+1. The PKI certificates are generated or imported.
+2. A new kodi configuration is generated using the following environment variables:
+
+ | Variable | Default Value | Description |
+ | -------- | ------------- | ----------- |
+ | KODI\_CERT\_DAYS | 30 | Validity period of any generated PKI certificates. |
+ | KODI\_KEY\_SIZE | 4096 | Key size of any generated PKI keys. |
+
+3. Volume permissions are normalized.
 
 ## Healthcheck Scripts
 
@@ -45,6 +53,9 @@ The embedded healthcheck script is located at `/etc/healthcheck.d/kodi` and perf
 │        └─ 40kodi.conf
 └─ run/
    └─ secrets/
+      ├─ kodi.crt
+      ├─ kodi.key
+      ├─ kodica.crt
       ├─ id_rsa.kodi
       └─ id_rsa.pub.kodi
 ```
